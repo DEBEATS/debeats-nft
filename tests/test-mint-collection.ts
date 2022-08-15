@@ -3,7 +3,7 @@ import { MintNft } from "../target/types/mint_nft";
 import { createKeypairFromFile } from './util';
 
 
-describe("test-mint", async () => {
+describe("test-mint-collection", async () => {
   const provider = anchor.AnchorProvider.env()
   const wallet = provider.wallet as anchor.Wallet;
   anchor.setProvider(provider);
@@ -21,11 +21,18 @@ describe("test-mint", async () => {
 
 
   it("Mint", async () => {
+
     const [nftPda, bump] = await anchor.web3.PublicKey.findProgramAddress(
       [anchor.utils.bytes.utf8.encode("nft_pda"), nftManagerKeypair.publicKey.toBuffer()],
       program.programId,
     );
     console.log(`nftPda: ${nftPda}, bump: ${bump}`);
+
+    const [collectionPda, collectionBump] = await anchor.web3.PublicKey.findProgramAddress(
+      [anchor.utils.bytes.utf8.encode("collection_pda"), nftManagerKeypair.publicKey.toBuffer()],
+      program.programId,
+    );
+    console.log(`collectionPda: ${collectionPda}, collectionBump: ${collectionBump}`);
 
     // Derive the mint address and the associated token account address
 
@@ -64,15 +71,15 @@ describe("test-mint", async () => {
 
     // Transact with the "mint" function in our on-chain program
 
-    await program.methods.mint()
+    await program.methods.mintCollection()
       .accounts({
         nftPda: nftPda,
+        collectionPda: collectionPda,
         masterEdition: masterEditionAddress,
         metadata: metadataAddress,
         mint: mintKeypair.publicKey,
         tokenAccount: tokenAddress,
         mintAuthority: wallet.publicKey,
-        payer: wallet.publicKey,
         nftManager: nftManagerKeypair.publicKey,
         tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
       })

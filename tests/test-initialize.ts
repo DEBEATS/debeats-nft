@@ -25,12 +25,19 @@ describe("test-initialize", async () => {
     );
     console.log(`nftPda: ${nftPda}, bump: ${bump}`);
 
+    const [collectionPda, collectionBump] = await anchor.web3.PublicKey.findProgramAddress(
+      [anchor.utils.bytes.utf8.encode("collection_pda"), nftManagerKeypair.publicKey.toBuffer()],
+      program.programId,
+    );
+    console.log(`collectionPda: ${collectionPda}, collectionBump: ${collectionBump}`);
+
     const tx = await program.methods.initialize(
       name, symbol, baseTokenUri, priceLamports
     )
       .accounts({
         initializer: wallet.publicKey,
         nftPda: nftPda,
+        collectionPda: collectionPda,
         nftManager: nftManagerKeypair.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
       })

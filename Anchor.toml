@@ -3,7 +3,7 @@ seeds = false
 skip-lint = false
 
 [programs.devnet]
-mint_nft = "BUMk7KQFhFmdK1AYhpxtMzJ8ySdQbf2NYUoR7144UJ31"
+mint_nft = "As35BqTErxt7neUhzZik8P194q9zdFJmuzcLYu1BvpNh"
 
 [registry]
 url = "https://api.apr.dev"
@@ -15,6 +15,8 @@ wallet = "/Users/xueshan/.config/solana/id.json"
 [scripts]
 # test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
 test-mint = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/test-mint.ts"
+test-mint-collection = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/test-mint-collection.ts"
 test-initialize = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/test-initialize.ts"
 log-pda-data = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/log-pda-data.ts"
 test-update-pda = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/test-update-pda.ts"
+test-set-and-verify-collection = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/test-set-and-verify-collection.ts"

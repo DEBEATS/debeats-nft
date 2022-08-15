@@ -4,7 +4,7 @@ pub mod mint;
 
 use mint::*;
 
-declare_id!("BUMk7KQFhFmdK1AYhpxtMzJ8ySdQbf2NYUoR7144UJ31");
+declare_id!("As35BqTErxt7neUhzZik8P194q9zdFJmuzcLYu1BvpNh");
 
 #[program]
 pub mod mint_nft {
@@ -39,9 +39,21 @@ pub mod mint_nft {
         mint::set_price(ctx, price_lamports)
     }
 
+    pub fn mint_collection(
+        ctx: Context<MintCollection>, 
+    ) -> Result<()> {
+        mint::mint_collection(ctx)
+    }
+
     pub fn mint(
         ctx: Context<MintNft>, 
     ) -> Result<()> {
         mint::mint(ctx)
+    }
+
+    pub fn set_and_verify_collection(
+        ctx: Context<SetAndVerifyCollection>,
+    ) -> Result<()> {
+        mint::set_and_verify_collection(ctx)
     }
 }

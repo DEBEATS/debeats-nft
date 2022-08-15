@@ -17,16 +17,27 @@ describe("log-data", async () => {
   console.log(`nftManagerKeypair public key: ${nftManagerKeypair.publicKey}`);
 
   it("Log nft pda", async () => {
-    const [nftPda] = await anchor.web3.PublicKey.findProgramAddress(
+    const [nftPda, bump] = await anchor.web3.PublicKey.findProgramAddress(
       [anchor.utils.bytes.utf8.encode("nft_pda"), nftManagerKeypair.publicKey.toBuffer()],
       program.programId,
     );
-    console.log(`nftPda: ${nftPda}`);
+    console.log(`nftPda: ${nftPda}, bump: ${bump}`);
+
+    const [collectionPda, collectionBump] = await anchor.web3.PublicKey.findProgramAddress(
+      [anchor.utils.bytes.utf8.encode("collection_pda"), nftManagerKeypair.publicKey.toBuffer()],
+      program.programId,
+    );
+    console.log(`collectionPda: ${collectionPda}, collectionBump: ${collectionBump}`);
+
 
     const nftPdaData = await program.account.nftPda.fetch(nftPda);
     console.log('nftPdaData:', nftPdaData);
-
     console.log('priceLamports', nftPdaData.priceLamports.toString());
+
+    const collectionPdaData = await program.account.collectionPda.fetch(collectionPda);
+    console.log('collectionPdaData:', collectionPdaData);
+    console.log('collection authority', collectionPdaData.authority.toBase58());
+    console.log('collection mint', collectionPdaData.mint.toBase58());
   });
 
  

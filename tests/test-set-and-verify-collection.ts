@@ -21,21 +21,25 @@ describe("test-mint", async () => {
 
 
   it("Mint", async () => {
+    const collectionMintKey = new anchor.web3.PublicKey(
+      "BanSLYLp9L3ZEHGwZG8tzJiNc7XaRBANEdMaG1Tz2ACd"
+    );
+
+    const nftMintKey = new anchor.web3.PublicKey(
+      "A1hADSdBvcu2P7c5H1kDmFikfDCvNa1tHrxHRsUVYQMi"
+    );
+
     const [nftPda, bump] = await anchor.web3.PublicKey.findProgramAddress(
       [anchor.utils.bytes.utf8.encode("nft_pda"), nftManagerKeypair.publicKey.toBuffer()],
       program.programId,
     );
     console.log(`nftPda: ${nftPda}, bump: ${bump}`);
 
-    // Derive the mint address and the associated token account address
-
-    const mintKeypair: anchor.web3.Keypair = anchor.web3.Keypair.generate();
-    const tokenAddress = await anchor.utils.token.associatedAddress({
-      mint: mintKeypair.publicKey,
-      owner: wallet.publicKey
-    });
-    console.log(`New token: ${mintKeypair.publicKey}`);
-    console.log(`tokenAddress: ${tokenAddress}`);
+    const [collectionPda, collectionBump] = await anchor.web3.PublicKey.findProgramAddress(
+      [anchor.utils.bytes.utf8.encode("collection_pda"), nftManagerKeypair.publicKey.toBuffer()],
+      program.programId,
+    );
+    console.log(`collectionPda: ${collectionPda}, collectionBump: ${collectionBump}`);
 
     // Derive the metadata and master edition addresses
 
@@ -43,40 +47,50 @@ describe("test-mint", async () => {
       [
         Buffer.from("metadata"),
         TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-        mintKeypair.publicKey.toBuffer(),
+        nftMintKey.toBuffer(),
       ],
       TOKEN_METADATA_PROGRAM_ID
     ))[0];
-    console.log("Metadata initialized");
     console.log(`metadataAddress: ${metadataAddress}`);
 
-    const masterEditionAddress = (await anchor.web3.PublicKey.findProgramAddress(
+    // Derive the metadata and master edition addresses
+
+    const collectionMetadataAddress = (await anchor.web3.PublicKey.findProgramAddress(
       [
         Buffer.from("metadata"),
         TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-        mintKeypair.publicKey.toBuffer(),
+        collectionMintKey.toBuffer(),
+      ],
+      TOKEN_METADATA_PROGRAM_ID
+    ))[0];
+    console.log(`collectionMetadataAddress: ${collectionMetadataAddress}`);
+
+    const collectionMasterEditionAddress = (await anchor.web3.PublicKey.findProgramAddress(
+      [
+        Buffer.from("metadata"),
+        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+        collectionMintKey.toBuffer(),
         Buffer.from("edition"),
       ],
       TOKEN_METADATA_PROGRAM_ID
     ))[0];
-    console.log("Master edition metadata initialized");
-    console.log(`masterEditionAddress: ${masterEditionAddress}`);
+    console.log(`collectionMasterEditionAddress: ${collectionMasterEditionAddress}`);
 
     // Transact with the "mint" function in our on-chain program
 
-    await program.methods.mint()
+    await program.methods.setAndVerifyCollection()
       .accounts({
         nftPda: nftPda,
-        masterEdition: masterEditionAddress,
+        collectionPda: collectionPda,
         metadata: metadataAddress,
-        mint: mintKeypair.publicKey,
-        tokenAccount: tokenAddress,
-        mintAuthority: wallet.publicKey,
         payer: wallet.publicKey,
         nftManager: nftManagerKeypair.publicKey,
+        collectionMint: collectionMintKey,
+        collectionMetadata: collectionMetadataAddress,
+        collectionMasterEdition: collectionMasterEditionAddress,
         tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
       })
-      .signers([mintKeypair])
+      .signers([])
       .rpc();
   });
 });
