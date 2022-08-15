@@ -4,7 +4,7 @@ pub mod mint;
 
 use mint::*;
 
-declare_id!("HGe3pxwjU3o5ZTNvQG4GDiyNb3cDeSLuw1EFS6MzeCak");
+declare_id!("BUMk7KQFhFmdK1AYhpxtMzJ8ySdQbf2NYUoR7144UJ31");
 
 #[program]
 pub mod mint_nft {

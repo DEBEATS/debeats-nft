@@ -18,7 +18,7 @@ describe("log-data", async () => {
 
   it("Log nft pda", async () => {
     const [nftPda] = await anchor.web3.PublicKey.findProgramAddress(
-      [anchor.utils.bytes.utf8.encode("nft"), nftManagerKeypair.publicKey.toBuffer()],
+      [anchor.utils.bytes.utf8.encode("nft_pda"), nftManagerKeypair.publicKey.toBuffer()],
       program.programId,
     );
     console.log(`nftPda: ${nftPda}`);

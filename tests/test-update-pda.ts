@@ -22,7 +22,7 @@ describe("log-data", async () => {
     const baseTokenUri = "https://raw.githubusercontent.com/wjsxqs/nft-assets/main/debeats/";
 
     const [nftPda, bump] = await anchor.web3.PublicKey.findProgramAddress(
-      [anchor.utils.bytes.utf8.encode("sale"), creatorKeypair.publicKey.toBuffer()],
+      [anchor.utils.bytes.utf8.encode("nft_pda"), creatorKeypair.publicKey.toBuffer()],
       program.programId,
     );
     console.log(`nftPda: ${nftPda}, bump: ${bump}`);

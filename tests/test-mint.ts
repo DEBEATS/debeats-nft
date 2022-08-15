@@ -3,7 +3,7 @@ import { MintNft } from "../target/types/mint_nft";
 import { createKeypairFromFile } from './util';
 
 
-describe("mint-nft", async () => {
+describe("test-mint", async () => {
   const provider = anchor.AnchorProvider.env()
   const wallet = provider.wallet as anchor.Wallet;
   anchor.setProvider(provider);
@@ -22,11 +22,11 @@ describe("mint-nft", async () => {
 
   it("Mint", async () => {
     const collectionMintKey = new anchor.web3.PublicKey(
-      "AADnrPFDXWi2kTdJvT9mtdkXjfbQNuAuGYudQjJpFL5p"
+      "BoAayLUjce9UiPd4AmWkAwkF1hwU5kpaY8jjCd75CeAe"
     );
 
     const [nftPda, bump] = await anchor.web3.PublicKey.findProgramAddress(
-      [anchor.utils.bytes.utf8.encode("nft"), nftManagerKeypair.publicKey.toBuffer()],
+      [anchor.utils.bytes.utf8.encode("nft_pda"), nftManagerKeypair.publicKey.toBuffer()],
       program.programId,
     );
     console.log(`nftPda: ${nftPda}, bump: ${bump}`);

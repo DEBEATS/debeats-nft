@@ -36,12 +36,12 @@ export const MintNft: FC = () => {
         const program = new Program(IDL, programID, provider);
 
         const collectionMintKey = new web3.PublicKey(
-          "De11RG6CvzWvKh9oz1HMyqZwLmTE1c9UrdW8PY3B86KC"
+          "BoAayLUjce9UiPd4AmWkAwkF1hwU5kpaY8jjCd75CeAe"
         );
 
-        const nftManagerKey = new web3.PublicKey('3H4YunvQthyx9FPpQhREqfd7Eue1WiqdEZfFN8v1gvB3');
+        const nftManagerKey = new web3.PublicKey('EX98fDJ8ERrZsCsohYFSD2c8k8twHmvEKHVboC1vAVjK');
         const [nftPda] = await web3.PublicKey.findProgramAddress(
-          [utils.bytes.utf8.encode("nft"), nftManagerKey.toBuffer()],
+          [utils.bytes.utf8.encode("nft_pda"), nftManagerKey.toBuffer()],
           program.programId,
         );
         console.log(`nftPda: ${nftPda}`);
@@ -84,6 +84,7 @@ export const MintNft: FC = () => {
             tokenAccount: tokenAddress,
             mintAuthority: publicKey,
             payer: publicKey,
+            nftManager: nftManagerKey,
             collectionMint: collectionMintKey,
             tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
           })

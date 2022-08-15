@@ -30,7 +30,7 @@ pub fn initialize(
     nft_pda.symbol = symbol;
     nft_pda.base_token_uri = base_token_uri;
     nft_pda.price_lamports = price_lamports;
-    nft_pda.bump = *ctx.bumps.get("nft").unwrap();
+    nft_pda.bump = *ctx.bumps.get("nft_pda").unwrap();
 
     Ok(())
 }
@@ -148,9 +148,9 @@ pub fn mint(
         },
     ];
 
-    let seeds = [b"nft".as_ref(), nft_manager_key.as_ref()];
+    let seeds = [b"nft_pda".as_ref(), nft_manager_key.as_ref()];
     let bump = assert_derivation(&crate::id(), &nft_pda.to_account_info(), &seeds)?;
-    let signer_seeds = [b"nft".as_ref(), nft_manager_key.as_ref(), &[bump]];
+    let signer_seeds = [b"nft_pda".as_ref(), nft_manager_key.as_ref(), &[bump]];
 
     msg!("Creating metadata account...");
     invoke_signed(
@@ -229,7 +229,7 @@ pub struct Initialize<'info> {
         init,
         payer = initializer,
         space = 453,
-        seeds = [b"nft".as_ref(), nft_manager.to_account_info().key.as_ref()],
+        seeds = [b"nft_pda".as_ref(), nft_manager.to_account_info().key.as_ref()],
         bump,
     )]
     pub nft_pda: Account<'info, NftPda>,
@@ -253,7 +253,7 @@ pub struct SetPrice<'info> {
 
 #[derive(Accounts)]
 pub struct MintNft<'info> {
-    #[account(mut, seeds = [b"nft".as_ref(), nft_manager.to_account_info().key.as_ref()], bump)]
+    #[account(mut, seeds = [b"nft_pda".as_ref(), nft_manager.to_account_info().key.as_ref()], bump)]
     pub nft_pda: Account<'info, NftPda>,
     /// CHECK: We're about to create this with Metaplex
     #[account(mut)]

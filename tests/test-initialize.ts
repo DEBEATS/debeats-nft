@@ -3,7 +3,7 @@ import { MintNft } from "../target/types/mint_nft";
 import { createKeypairFromFile } from './util';
 
 
-describe("mint-nft", async () => {
+describe("test-initialize", async () => {
   const provider = anchor.AnchorProvider.env()
   const wallet = provider.wallet as anchor.Wallet;
   anchor.setProvider(provider);
@@ -19,11 +19,11 @@ describe("mint-nft", async () => {
     const baseTokenUri = "https://raw.githubusercontent.com/wjsxqs/nft-assets/main/debeats/";
     const priceLamports = new anchor.BN(0.5 * anchor.web3.LAMPORTS_PER_SOL);
 
-    const [nftPda] = await anchor.web3.PublicKey.findProgramAddress(
-      [anchor.utils.bytes.utf8.encode("sale"), nftManagerKeypair.publicKey.toBuffer()],
+    const [nftPda, bump] = await anchor.web3.PublicKey.findProgramAddress(
+      [anchor.utils.bytes.utf8.encode("nft_pda"), nftManagerKeypair.publicKey.toBuffer()],
       program.programId,
     );
-    console.log(`nftPda: ${nftPda}`);
+    console.log(`nftPda: ${nftPda}, bump: ${bump}`);
 
     const tx = await program.methods.initialize(
       name, symbol, baseTokenUri, priceLamports
