@@ -123,7 +123,8 @@ export const MintNft: FC = () => {
         const collectionAuthorityRecordAddress = await getCollectionAuthorityRecord(collectionMintKey, collectionPda);
         console.log(`collectionAuthorityRecordAddress: ${collectionAuthorityRecordAddress}`);
 
-        const tx = await program.methods.mint()
+        const tokenId = 1;
+        const tx = await program.methods.mint(new BN(tokenId))
           .accounts({
             nftPda: nftPda,
             collectionPda: collectionPda,

@@ -219,6 +219,7 @@ pub fn mint_collection(
 
 pub fn mint(
     ctx: Context<MintNft>,
+    token_id: u64,
 ) -> Result<()> {
     let nft_pda = &ctx.accounts.nft_pda;
 
@@ -298,7 +299,7 @@ pub fn mint(
 
     let name = nft_pda.name.to_string();
     let symbol = nft_pda.symbol.to_string();
-    let uri = nft_pda.base_token_uri.to_string() + &std::string::ToString::to_string("test.json");
+    let uri = nft_pda.base_token_uri.to_string() + &token_id.to_string() + &std::string::ToString::to_string(".json");
 
     let nft_manager = ctx.accounts.nft_manager.to_account_info();
     let nft_manager_key = nft_manager.key();

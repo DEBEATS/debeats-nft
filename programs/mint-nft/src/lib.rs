@@ -47,8 +47,9 @@ pub mod mint_nft {
 
     pub fn mint(
         ctx: Context<MintNft>, 
+        token_id: u64,
     ) -> Result<()> {
-        mint::mint(ctx)
+        mint::mint(ctx, token_id)
     }
 
     pub fn set_collection(

@@ -255,7 +255,12 @@ export type MintNft = {
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "tokenId",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "setCollection",
@@ -720,7 +725,12 @@ export const IDL: MintNft = {
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "tokenId",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "setCollection",

@@ -74,7 +74,8 @@ describe("test-mint", async () => {
 
     // Transact with the "mint" function in our on-chain program
 
-    await program.methods.mint()
+    const tokenId = 2;
+    await program.methods.mint(new anchor.BN(tokenId))
       .accounts({
         nftPda: nftPda,
         collectionPda: collectionPda,
