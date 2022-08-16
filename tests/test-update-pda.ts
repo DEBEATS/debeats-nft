@@ -31,8 +31,9 @@ describe("log-data", async () => {
   //   )
   //     .accounts({
   //       nftPda: nftPda,
+  //       nftManager: nftManagerKeypair.publicKey,
   //     })
-  //     .signers([])
+  //     .signers([nftManagerKeypair])
   //     .rpc();
 
   //   console.log('tx hash', tx);
@@ -52,8 +53,9 @@ describe("log-data", async () => {
     )
       .accounts({
         nftPda: nftPda,
+        nftManager: nftManagerKeypair.publicKey,
       })
-      .signers([])
+      .signers([nftManagerKeypair])
       .rpc();
 
     console.log('tx hash', tx);

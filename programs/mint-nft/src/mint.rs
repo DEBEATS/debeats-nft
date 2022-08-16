@@ -50,6 +50,11 @@ pub fn set_metadata(
     base_token_uri: String
 ) -> Result<()> {
     let nft_pda = &mut ctx.accounts.nft_pda;
+
+    if &nft_pda.creator != ctx.accounts.nft_manager.key {
+        return Err(error!(ErrorCode::Unauthorized));
+    }
+
     nft_pda.name = name;
     nft_pda.symbol = symbol;
     nft_pda.base_token_uri = base_token_uri;
@@ -58,6 +63,11 @@ pub fn set_metadata(
 
 pub fn set_price(ctx: Context<SetPrice>, price_lamports: u64) -> Result<()> {
     let nft_pda = &mut ctx.accounts.nft_pda;
+
+    if &nft_pda.creator != ctx.accounts.nft_manager.key {
+        return Err(error!(ErrorCode::Unauthorized));
+    }
+
     nft_pda.price_lamports = price_lamports;
     Ok(())
 }
@@ -544,14 +554,18 @@ pub struct Initialize<'info> {
 
 #[derive(Accounts)]
 pub struct SetMetadata<'info> {
-    #[account(mut)]
+    #[account(mut, seeds = [b"nft_pda".as_ref(), nft_manager.to_account_info().key.as_ref()], bump)]
     pub nft_pda: Account<'info, NftPda>,
+    #[account(mut)]
+    pub nft_manager: Signer<'info>,
 }
 
 #[derive(Accounts)]
 pub struct SetPrice<'info> {
-    #[account(mut)]
+    #[account(mut, seeds = [b"nft_pda".as_ref(), nft_manager.to_account_info().key.as_ref()], bump)]
     pub nft_pda: Account<'info, NftPda>,
+    #[account(mut)]
+    pub nft_manager: Signer<'info>,
 }
 
 #[derive(Accounts)]
