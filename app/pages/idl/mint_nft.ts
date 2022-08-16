@@ -170,6 +170,11 @@ export type MintNft = {
           "isSigner": false
         },
         {
+          "name": "collectionPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "metadata",
           "isMut": true,
           "isSigner": false
@@ -202,6 +207,26 @@ export type MintNft = {
         {
           "name": "nftManager",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collectionMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "collectionMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collectionMasterEdition",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collectionAuthorityRecord",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -610,6 +635,11 @@ export const IDL: MintNft = {
           "isSigner": false
         },
         {
+          "name": "collectionPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "metadata",
           "isMut": true,
           "isSigner": false
@@ -642,6 +672,26 @@ export const IDL: MintNft = {
         {
           "name": "nftManager",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collectionMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "collectionMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collectionMasterEdition",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collectionAuthorityRecord",
+          "isMut": false,
           "isSigner": false
         },
         {

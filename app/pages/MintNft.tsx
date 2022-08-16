@@ -19,6 +19,47 @@ export const MintNft: FC = () => {
     const TOKEN_METADATA_PROGRAM_ID = new web3.PublicKey(
       "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
     );
+
+    const getMetadata = async (mint: web3.PublicKey): Promise<web3.PublicKey> => {
+      return (
+        await web3.PublicKey.findProgramAddress(
+          [
+            Buffer.from("metadata"),
+            TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+            mint.toBuffer(),
+          ],
+          TOKEN_METADATA_PROGRAM_ID
+        )
+      )[0];
+    };
+
+    const getMasterEdition = async (mint: web3.PublicKey): Promise<web3.PublicKey> => {
+      return (
+        await web3.PublicKey.findProgramAddress(
+          [
+            Buffer.from("metadata"),
+            TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+            mint.toBuffer(),
+            Buffer.from("edition"),
+          ],
+          TOKEN_METADATA_PROGRAM_ID
+        )
+      )[0];
+    };
+
+    const getCollectionAuthorityRecord = async (mint: web3.PublicKey, collectionAuthority: web3.PublicKey): Promise<web3.PublicKey> => {
+      return (
+        await web3.PublicKey.findProgramAddress(
+          [
+            Buffer.from("metadata"),
+            TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+            mint.toBuffer(),
+            Buffer.from("collection_authority"),
+            collectionAuthority.toBuffer(),
+          ],
+          TOKEN_METADATA_PROGRAM_ID
+      ))[0];
+    };
   
     const onClick = useCallback(async () => {
         if (!wallet || !publicKey || !signTransaction || !signAllTransactions) throw new WalletNotConnectedError();
@@ -34,17 +75,24 @@ export const MintNft: FC = () => {
         });
 
         const program = new Program(IDL, programID, provider);
-
-        // const collectionMintKey = new web3.PublicKey(
-        //   "BoAayLUjce9UiPd4AmWkAwkF1hwU5kpaY8jjCd75CeAe"
-        // );
-
+    
         const nftManagerKey = new web3.PublicKey('EX98fDJ8ERrZsCsohYFSD2c8k8twHmvEKHVboC1vAVjK');
+
+        const collectionMintKey = new web3.PublicKey(
+          "BanSLYLp9L3ZEHGwZG8tzJiNc7XaRBANEdMaG1Tz2ACd"
+        );
+    
         const [nftPda] = await web3.PublicKey.findProgramAddress(
           [utils.bytes.utf8.encode("nft_pda"), nftManagerKey.toBuffer()],
           program.programId,
         );
         console.log(`nftPda: ${nftPda}`);
+    
+        const [collectionPda] = await web3.PublicKey.findProgramAddress(
+          [utils.bytes.utf8.encode("collection_pda"), nftManagerKey.toBuffer()],
+          program.programId,
+        );
+        console.log(`collectionPda: ${collectionPda}`);
 
         const mintKey = Keypair.generate();
         console.log(`New token: ${mintKey.publicKey}`);
@@ -54,30 +102,31 @@ export const MintNft: FC = () => {
             publicKey
         );
 
-        const metadataAddress = (await web3.PublicKey.findProgramAddress(
-          [
-            Buffer.from("metadata"),
-            TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-            mintKey.publicKey.toBuffer(),
-          ],
-          TOKEN_METADATA_PROGRAM_ID
-        ))[0];
+        // Derive the nft metadata and master edition addresses
+
+        const metadataAddress = await getMetadata(mintKey.publicKey);
         console.log(`metadataAddress: ${metadataAddress}`);
     
-        const masterEditionAddress = (await web3.PublicKey.findProgramAddress(
-          [
-            Buffer.from("metadata"),
-            TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-            mintKey.publicKey.toBuffer(),
-            Buffer.from("edition"),
-          ],
-          TOKEN_METADATA_PROGRAM_ID
-        ))[0];
+        const masterEditionAddress = await getMasterEdition(mintKey.publicKey);
         console.log(`masterEditionAddress: ${masterEditionAddress}`);
+
+        // Derive the collection metadata and master edition addresses
+
+        const collectionMetadataAddress = await getMetadata(collectionMintKey);
+        console.log(`collectionMetadataAddress: ${collectionMetadataAddress}`);
+
+        const collectionMasterEditionAddress = await getMasterEdition(collectionMintKey);
+        console.log(`collectionMasterEditionAddress: ${collectionMasterEditionAddress}`);
+
+        // Derive the collection authority record address
+
+        const collectionAuthorityRecordAddress = await getCollectionAuthorityRecord(collectionMintKey, collectionPda);
+        console.log(`collectionAuthorityRecordAddress: ${collectionAuthorityRecordAddress}`);
 
         const tx = await program.methods.mint()
           .accounts({
             nftPda: nftPda,
+            collectionPda: collectionPda,
             masterEdition: masterEditionAddress,
             metadata: metadataAddress,
             mint: mintKey.publicKey,
@@ -85,6 +134,10 @@ export const MintNft: FC = () => {
             mintAuthority: publicKey,
             payer: publicKey,
             nftManager: nftManagerKey,
+            collectionMint: collectionMintKey,
+            collectionMetadata: collectionMetadataAddress,
+            collectionMasterEdition: collectionMasterEditionAddress,
+            collectionAuthorityRecord: collectionAuthorityRecordAddress,
             tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
           })
           .signers([mintKey])
