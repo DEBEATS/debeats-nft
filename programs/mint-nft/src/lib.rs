@@ -63,4 +63,13 @@ pub mod mint_nft {
     ) -> Result<()> {
         mint::set_and_verify_collection(ctx)
     }
+
+    pub fn update_metadata_account(
+        ctx: Context<UpdateMetadataAccount>,
+        name: String,
+        symbol: String,
+        uri: String,
+    ) -> Result<()> {
+        mint::update_metadata_account(ctx, name, symbol, uri)
+    }
 }

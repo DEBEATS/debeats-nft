@@ -11,7 +11,7 @@ use {
     mpl_token_metadata::{
         ID as TOKEN_METADATA_ID,
         instruction as token_instruction,
-        state::CollectionDetails,
+        state::{CollectionDetails, DataV2},
         // assertions::collection::assert_master_edition,
         utils::assert_derivation,
     },
@@ -522,6 +522,64 @@ pub fn set_and_verify_collection(
   Ok(())
 }
 
+pub fn update_metadata_account(
+    ctx: Context<UpdateMetadataAccount>,
+    name: String,
+    symbol: String,
+    uri: String,
+) -> Result<()> {
+    let nft_pda = &ctx.accounts.nft_pda;
+
+    if &nft_pda.creator != ctx.accounts.nft_manager.key {
+        return Err(error!(ErrorCode::Unauthorized));
+    }
+
+    let nft_manager = ctx.accounts.nft_manager.to_account_info();
+    let nft_manager_key = nft_manager.key();
+
+    let creators = vec![
+        mpl_token_metadata::state::Creator {
+            address: nft_manager_key,
+            verified: false,
+            share: 100,
+        },
+    ];
+
+    let data = DataV2 {
+        name,
+        symbol,
+        uri,
+        seller_fee_basis_points: 200, // seller_fee_basis_points
+        creators: Some(creators),
+        collection: None, // Option<Collection>
+        uses: None, // Option<Uses>
+    };
+
+    let seeds = [b"nft_pda".as_ref(), nft_manager_key.as_ref()];
+    let bump = assert_derivation(&crate::id(), &nft_pda.to_account_info(), &seeds)?;
+    let signer_seeds = [b"nft_pda".as_ref(), nft_manager_key.as_ref(), &[bump]];
+
+    msg!("Updating metadata account...");
+    invoke_signed(
+        &token_instruction::update_metadata_accounts_v2(
+            TOKEN_METADATA_ID, 
+            ctx.accounts.metadata.key(), // metadata_account
+            nft_pda.to_account_info().key(), // update authority
+            None, // new update authority
+            Some(data), // data
+            None, // primary_sale_happened
+            Some(true), // is_mutable
+        ),
+        &[
+            ctx.accounts.metadata.to_account_info(),
+            nft_pda.to_account_info(),
+        ],
+        &[&signer_seeds],
+    )?;
+
+    Ok(())
+}
+
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(mut)]
@@ -698,6 +756,21 @@ pub struct SetAndVerifyCollection<'info> {
     pub collection_master_edition: UncheckedAccount<'info>,
     /// CHECK: We're about to create this with Metaplex
     pub collection_authority_record: UncheckedAccount<'info>,
+    pub rent: Sysvar<'info, Rent>,
+    pub system_program: Program<'info, System>,
+    /// CHECK: Metaplex will check this
+    pub token_metadata_program: UncheckedAccount<'info>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateMetadataAccount<'info> {
+    #[account(mut, seeds = [b"nft_pda".as_ref(), nft_manager.to_account_info().key.as_ref()], bump)]
+    pub nft_pda: Account<'info, NftPda>,
+    /// CHECK: We're about to create this with Metaplex
+    #[account(mut)]
+    pub metadata: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub nft_manager: Signer<'info>,
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     /// CHECK: Metaplex will check this

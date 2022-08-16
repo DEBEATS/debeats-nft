@@ -21,3 +21,4 @@ log-pda-data = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/log-pda-da
 test-update-pda = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/test-update-pda.ts"
 test-set-collection = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/test-set-collection.ts"
 test-set-and-verify-collection = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/test-set-and-verify-collection.ts"
+test-update-metadata-account = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/test-update-metadata-account.ts"
