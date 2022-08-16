@@ -1,0 +1,21 @@
+{
+    "name": "DEBEATS",
+    "symbol": "DEBEATS",
+    "description": "The first create, play and earn NFT music game. Join the next generation of music games with your favourite music NFTs and create beat maps together!",
+    "external_url": "https://debeats.com",
+    "image": "https://web3games-prod.oss-cn-hongkong.aliyuncs.com/20220509cfcef90d5e0dae1c.png",
+    "attributes": [
+        {
+            "trait_type": "Grade",
+            "value": "Common"
+        },
+        {
+            "trait_type": "Color",
+            "value": "Black"
+        },
+        {
+          "trait_type": "Style",
+          "value": "Pop"
+      }
+    ]
+}
