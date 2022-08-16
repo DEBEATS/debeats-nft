@@ -3,7 +3,20 @@
     "symbol": "BEATMAP",
     "description": "The first create, play and earn NFT music game. Join the next generation of music games with your favourite music NFTs and create beat maps together!",
     "external_url": "https://debeats.com",
-    "image": "",
-    "attributes": [],
+    "image": "https://debeats-nft.oss-cn-hongkong.aliyuncs.com/betamap.png",
+    "attributes": [
+        {
+            "trait_type": "Grade",
+            "value": "Common"
+        },
+        {
+            "trait_type": "Song",
+            "value": "Test"
+        },
+        {
+          "trait_type": "Style",
+          "value": "Pop"
+      }
+    ],
     "animation_url": "https://portal-dev.web3games.com/debeats-beapmap.mp4"
 }
