@@ -1,10 +1,6 @@
-// import { WalletModalProvider, WalletDisconnectButton, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import type { NextPage } from 'next';
-// import Head from 'next/head';
-// import Image from 'next/image';
-import styles from '../styles/Home.module.css';
-
 import React, { useMemo } from 'react';
+import type { NextPage } from 'next';
+import styles from '../styles/Home.module.css';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import {
@@ -51,24 +47,6 @@ const Home: NextPage = () => {
         </ConnectionProvider>
       </div>
     );
-
-    // return (
-    //     <div className={styles.container}>
-
-    //         <main className={styles.main}>
-    //             <h1 className={styles.title}>
-    //                 Welcome to <a href="https://nextjs.org">Next.js!</a>
-    //             </h1>
-
-    //             <WalletModalProvider>
-    //             <div className={styles.walletButtons}>
-    //                 <WalletMultiButton />
-    //                 <WalletDisconnectButton />
-    //             </div>
-    //             </WalletModalProvider>
-    //         </main>
-    //     </div>
-    // );
 };
 
 export default Home;

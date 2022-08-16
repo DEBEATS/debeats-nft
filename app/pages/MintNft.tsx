@@ -6,7 +6,6 @@ import {
 } from '@solana/spl-token';
 import { programID } from "./utils/config";
 import { IDL } from "./idl/mint_nft";
-
 import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import React, { FC, useCallback } from 'react';
@@ -61,7 +60,7 @@ export const MintNft: FC = () => {
       ))[0];
     };
   
-    const onClick = useCallback(async () => {
+    const onClick = useCallback(async (tokenId: number) => {
         if (!wallet || !publicKey || !signTransaction || !signAllTransactions) throw new WalletNotConnectedError();
         
         const signerWallet = {
@@ -123,7 +122,6 @@ export const MintNft: FC = () => {
         const collectionAuthorityRecordAddress = await getCollectionAuthorityRecord(collectionMintKey, collectionPda);
         console.log(`collectionAuthorityRecordAddress: ${collectionAuthorityRecordAddress}`);
 
-        const tokenId = 1;
         const tx = await program.methods.mint(new BN(tokenId))
           .accounts({
             nftPda: nftPda,
@@ -149,8 +147,13 @@ export const MintNft: FC = () => {
     }, [publicKey, sendTransaction, connection]);
 
     return (
-        <button onClick={onClick} disabled={!publicKey}>
-            Buy NFT 
+      <>
+        <button onClick={() => onClick(1)} disabled={!publicKey}>
+            Mint Headphone 
         </button>
+        <button onClick={() => onClick(2)} disabled={!publicKey}>
+            Mint Beatmap
+        </button>
+      </>
     );
 }
