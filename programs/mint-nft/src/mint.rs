@@ -11,7 +11,7 @@ use {
     mpl_token_metadata::{
         ID as TOKEN_METADATA_ID,
         instruction as token_instruction,
-        state::{Collection, CollectionDetails},
+        state::CollectionDetails,
         // assertions::collection::assert_master_edition,
         utils::assert_derivation,
     },
@@ -331,11 +331,7 @@ pub fn mint(
             200, // seller_fee_basis_points
             false, // update_authority_is_signer, 
             true, // is_mutable,
-            // Some(Collection {
-            //     key: ctx.accounts.collection_mint.key(),
-            //     verified: false,
-            // }), // Option<Collection>
-            None,
+            None, // Option<Collection>
             None, // Option<Uses>
             None, // Option<CollectionDetails>
         ),
@@ -372,6 +368,41 @@ pub fn mint(
             ctx.accounts.rent.to_account_info(),
         ],
         &[&signer_seeds],
+    )?;
+
+    let collection_pda = &ctx.accounts.collection_pda;
+    if &collection_pda.mint != ctx.accounts.collection_mint.key {
+        return Err(error!(ErrorCode::InvalidCollectionMint)); 
+    }
+
+    let collection_seeds = [b"collection_pda".as_ref(), nft_manager_key.as_ref()];
+    let collection_bump = assert_derivation(&crate::id(), &collection_pda.to_account_info(), &collection_seeds)?;
+    let collection_signer_seeds = [b"collection_pda".as_ref(), nft_manager_key.as_ref(), &[collection_bump]];
+
+    msg!("Set and verify collection...");
+    invoke_signed(
+        &token_instruction::set_and_verify_sized_collection_item(
+            TOKEN_METADATA_ID,
+            ctx.accounts.metadata.key(), // Metadata account
+            collection_pda.key(), // Collection Update authority
+            ctx.accounts.payer.key(), // payer
+            ctx.accounts.nft_pda.to_account_info().key(), // Update Authority of Collection NFT and NFT
+            ctx.accounts.collection_mint.key(), // Mint of the Collection
+            ctx.accounts.collection_metadata.key(), // Metadata Account of the Collection
+            ctx.accounts.collection_master_edition.key(), // MasterEdition Account of the Collection Token
+            Some(ctx.accounts.collection_authority_record.key()), // Collection authority record
+        ),
+        &[
+            ctx.accounts.metadata.to_account_info(),
+            collection_pda.to_account_info(),
+            ctx.accounts.payer.to_account_info(),
+            ctx.accounts.nft_pda.to_account_info(),
+            ctx.accounts.collection_mint.to_account_info(),
+            ctx.accounts.collection_metadata.to_account_info(),
+            ctx.accounts.collection_master_edition.to_account_info(),
+            ctx.accounts.collection_authority_record.to_account_info(),
+        ],
+        &[&collection_signer_seeds],
     )?;
 
     msg!("Token mint process completed successfully.");
@@ -556,6 +587,8 @@ pub struct MintCollection<'info> {
 pub struct MintNft<'info> {
     #[account(mut, seeds = [b"nft_pda".as_ref(), nft_manager.to_account_info().key.as_ref()], bump)]
     pub nft_pda: Account<'info, NftPda>,
+    #[account(mut, seeds = [b"collection_pda".as_ref(), nft_manager.to_account_info().key.as_ref()], bump)]
+    pub collection_pda: Account<'info, CollectionPda>,
     /// CHECK: We're about to create this with Metaplex
     #[account(mut)]
     pub metadata: UncheckedAccount<'info>,
@@ -575,6 +608,16 @@ pub struct MintNft<'info> {
     /// CHECK: We're about to create this with Anchor
     #[account(mut)]
     pub nft_manager: UncheckedAccount<'info>,
+    /// CHECK: We're about to create this with Anchor
+    pub collection_mint: UncheckedAccount<'info>,
+    /// CHECK: We're about to create this with Metaplex
+    #[account(mut)]
+    pub collection_metadata: UncheckedAccount<'info>,
+    /// CHECK: We're about to create this with Metaplex
+    #[account(mut)]
+    pub collection_master_edition: UncheckedAccount<'info>,
+    /// CHECK: We're about to create this with Metaplex
+    pub collection_authority_record: UncheckedAccount<'info>,
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, token::Token>,
