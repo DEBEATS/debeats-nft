@@ -231,10 +231,21 @@ pub fn mint(
     ctx: Context<MintNft>,
     token_id: u64,
 ) -> Result<()> {
+    // TODO: set valid id in collection pda
+    if !(token_id == 1 || token_id == 2) {
+        return Err(error!(ErrorCode::InvalidTokenId));
+    }
+
     let nft_pda = &ctx.accounts.nft_pda;
 
     if &nft_pda.creator != ctx.accounts.nft_manager.key {
         return Err(error!(ErrorCode::InvalidNftManager));
+    }
+
+    let collection_pda = &ctx.accounts.collection_pda;
+
+    if &collection_pda.mint != ctx.accounts.collection_mint.key {
+        return Err(error!(ErrorCode::InvalidCollectionMint)); 
     }
 
     msg!("Initiating transfer of {} lamports...", nft_pda.price_lamports);
@@ -380,11 +391,6 @@ pub fn mint(
         ],
         &[&signer_seeds],
     )?;
-
-    let collection_pda = &ctx.accounts.collection_pda;
-    if &collection_pda.mint != ctx.accounts.collection_mint.key {
-        return Err(error!(ErrorCode::InvalidCollectionMint)); 
-    }
 
     let collection_seeds = [b"collection_pda".as_ref(), nft_manager_key.as_ref()];
     let collection_bump = assert_derivation(&crate::id(), &collection_pda.to_account_info(), &collection_seeds)?;
@@ -725,4 +731,6 @@ pub enum ErrorCode {
     InvalidCollectionAuthority,
     #[msg("Invalid collection mint.")]
     InvalidCollectionMint,
+    #[msg("Invalid token id.")]
+    InvalidTokenId,
 }
