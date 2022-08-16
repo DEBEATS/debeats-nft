@@ -12,6 +12,7 @@ use {
         ID as TOKEN_METADATA_ID,
         instruction as token_instruction,
         state::{Collection, CollectionDetails},
+        // assertions::collection::assert_master_edition,
         utils::assert_derivation,
     },
 };
@@ -378,6 +379,50 @@ pub fn mint(
     Ok(())
 }
 
+pub fn set_collection(ctx: Context<SetCollection>) -> Result<()> {
+    let nft_pda = &ctx.accounts.nft_pda;
+    if &nft_pda.creator != ctx.accounts.nft_manager.key {
+        return Err(error!(ErrorCode::InvalidNftManager));
+    }
+
+    // TODO: check mint is metadata mint
+
+    let authority_record = ctx.accounts.collection_authority_record.to_account_info();
+    let nft_manager_key = ctx.accounts.nft_manager.key();
+
+    let seeds = [b"nft_pda".as_ref(), nft_manager_key.as_ref()];
+    let bump = assert_derivation(&crate::id(), &nft_pda.to_account_info(), &seeds)?;
+    let signer_seeds = [b"nft_pda".as_ref(), nft_manager_key.as_ref(), &[bump]];
+
+    msg!("Approve collection authority...");
+    if authority_record.data_is_empty() {
+        invoke_signed(
+            &token_instruction::approve_collection_authority(
+                TOKEN_METADATA_ID,
+                authority_record.key(),
+                ctx.accounts.collection_pda.to_account_info().key(),
+                ctx.accounts.nft_pda.to_account_info().key(),
+                ctx.accounts.payer.key(),
+                ctx.accounts.metadata.key(),
+                ctx.accounts.mint.key(),
+            ),
+            &[
+                authority_record.clone(),
+                ctx.accounts.collection_pda.to_account_info(),
+                ctx.accounts.nft_pda.to_account_info(),
+                ctx.accounts.payer.to_account_info(),
+                ctx.accounts.metadata.to_account_info(),
+                ctx.accounts.mint.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+                ctx.accounts.rent.to_account_info(),
+            ],
+            &[&signer_seeds],
+        )?;
+    }
+
+    Ok(())
+}
+
 pub fn set_and_verify_collection(
     ctx: Context<SetAndVerifyCollection>,
 ) -> Result<()> {
@@ -393,13 +438,8 @@ pub fn set_and_verify_collection(
         return Err(error!(ErrorCode::InvalidCollectionMint)); 
     }
 
-    let update_authority = ctx.accounts.nft_pda.to_account_info();
     let nft_manager_key = ctx.accounts.nft_manager.key();
     let collection_mint = ctx.accounts.collection_mint.to_account_info();
-
-    let seeds = [b"nft_pda".as_ref(), nft_manager_key.as_ref()];
-    let bump = assert_derivation(&crate::id(), &nft_pda.to_account_info(), &seeds)?;
-    let signer_seeds = [b"nft_pda".as_ref(), nft_manager_key.as_ref(), &[bump]];
 
     let collection_seeds = [b"collection_pda".as_ref(), nft_manager_key.as_ref()];
     let collection_bump = assert_derivation(&crate::id(), &collection_pda.to_account_info(), &collection_seeds)?;
@@ -412,23 +452,23 @@ pub fn set_and_verify_collection(
             ctx.accounts.metadata.key(), // Metadata account
             collection_pda.key(), // Collection Update authority
             ctx.accounts.payer.key(), // payer
-            update_authority.key(), // Update Authority of Collection NFT and NFT
+            ctx.accounts.nft_pda.to_account_info().key(), // Update Authority of Collection NFT and NFT
             collection_mint.key(), // Mint of the Collection
             ctx.accounts.collection_metadata.key(), // Metadata Account of the Collection
             ctx.accounts.collection_master_edition.key(), // MasterEdition Account of the Collection Token
-            None, // Collection authority record
+            Some(ctx.accounts.collection_authority_record.key()), // Collection authority record
         ),
         &[
             ctx.accounts.metadata.to_account_info(),
             collection_pda.to_account_info(),
             ctx.accounts.payer.to_account_info(),
-            update_authority.to_account_info(),
+            ctx.accounts.nft_pda.to_account_info(),
             collection_mint.to_account_info(),
             ctx.accounts.collection_metadata.to_account_info(),
             ctx.accounts.collection_master_edition.to_account_info(),
-            ctx.accounts.rent.to_account_info(),
+            ctx.accounts.collection_authority_record.to_account_info(),
         ],
-        &[&signer_seeds, &collection_signer_seeds],
+        &[&collection_signer_seeds],
     )?;
 
   Ok(())
@@ -544,6 +584,33 @@ pub struct MintNft<'info> {
 }
 
 #[derive(Accounts)]
+pub struct SetCollection<'info> {
+    #[account(mut, seeds = [b"nft_pda".as_ref(), nft_manager.to_account_info().key.as_ref()], bump)]
+    pub nft_pda: Account<'info, NftPda>,
+    /// CHECK: account constraints checked in account trait
+    #[account(mut, seeds = [b"collection_pda".as_ref(), nft_manager.to_account_info().key.as_ref()], bump)]
+    pub collection_pda: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    /// CHECK: We're about to create this with Metaplex
+    pub metadata: UncheckedAccount<'info>,
+    /// CHECK: We're about to create this with Anchor
+    pub mint: UncheckedAccount<'info>,
+    /// CHECK: We're about to create this with Anchor
+    pub edition: UncheckedAccount<'info>,
+    /// CHECK: We're about to create this with Anchor
+    #[account(mut)]
+    pub collection_authority_record: UncheckedAccount<'info>,
+    /// CHECK: We're about to create this with Anchor
+    #[account(mut)]
+    pub nft_manager: UncheckedAccount<'info>,
+    pub rent: Sysvar<'info, Rent>,
+    pub system_program: Program<'info, System>,
+    /// CHECK: Metaplex will check this
+    pub token_metadata_program: UncheckedAccount<'info>,
+}
+
+#[derive(Accounts)]
 pub struct SetAndVerifyCollection<'info> {
     #[account(mut, seeds = [b"nft_pda".as_ref(), nft_manager.to_account_info().key.as_ref()], bump)]
     pub nft_pda: Account<'info, NftPda>,
@@ -560,9 +627,13 @@ pub struct SetAndVerifyCollection<'info> {
     /// CHECK: We're about to create this with Anchor
     pub collection_mint: UncheckedAccount<'info>,
     /// CHECK: We're about to create this with Metaplex
+    #[account(mut)]
     pub collection_metadata: UncheckedAccount<'info>,
     /// CHECK: We're about to create this with Metaplex
+    #[account(mut)]
     pub collection_master_edition: UncheckedAccount<'info>,
+    /// CHECK: We're about to create this with Metaplex
+    pub collection_authority_record: UncheckedAccount<'info>,
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     /// CHECK: Metaplex will check this

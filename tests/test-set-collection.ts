@@ -3,7 +3,7 @@ import { MintNft } from "../target/types/mint_nft";
 import { createKeypairFromFile } from './util';
 
 
-describe("test-mint", async () => {
+describe("test-set-collection", async () => {
   const provider = anchor.AnchorProvider.env()
   const wallet = provider.wallet as anchor.Wallet;
   anchor.setProvider(provider);
@@ -25,10 +25,6 @@ describe("test-mint", async () => {
       "BanSLYLp9L3ZEHGwZG8tzJiNc7XaRBANEdMaG1Tz2ACd"
     );
 
-    const nftMintKey = new anchor.web3.PublicKey(
-      "8UDypd7Yb8y4yoaL94EeQBsZSkfeWTvHg3KxzkM8Qy6A"
-    );
-
     const [nftPda, bump] = await anchor.web3.PublicKey.findProgramAddress(
       [anchor.utils.bytes.utf8.encode("nft_pda"), nftManagerKeypair.publicKey.toBuffer()],
       program.programId,
@@ -41,17 +37,19 @@ describe("test-mint", async () => {
     );
     console.log(`collectionPda: ${collectionPda}, collectionBump: ${collectionBump}`);
 
-    // Derive the metadata and master edition addresses
+    // Derive the collection authority record addresses
 
-    const metadataAddress = (await anchor.web3.PublicKey.findProgramAddress(
+    const collectionAuthorityRecordAddress = (await anchor.web3.PublicKey.findProgramAddress(
       [
         Buffer.from("metadata"),
         TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-        nftMintKey.toBuffer(),
+        collectionMintKey.toBuffer(),
+        Buffer.from("collection_authority"),
+        collectionPda.toBuffer(),
       ],
       TOKEN_METADATA_PROGRAM_ID
     ))[0];
-    console.log(`metadataAddress: ${metadataAddress}`);
+    console.log(`collectionAuthorityRecordAddress: ${collectionAuthorityRecordAddress}`);
 
     // Derive the metadata and master edition addresses
 
@@ -76,33 +74,18 @@ describe("test-mint", async () => {
     ))[0];
     console.log(`collectionMasterEditionAddress: ${collectionMasterEditionAddress}`);
 
-    // Derive the collection authority record addresses
-
-    const collectionAuthorityRecordAddress = (await anchor.web3.PublicKey.findProgramAddress(
-      [
-        Buffer.from("metadata"),
-        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-        collectionMintKey.toBuffer(),
-        Buffer.from("collection_authority"),
-        collectionPda.toBuffer(),
-      ],
-      TOKEN_METADATA_PROGRAM_ID
-    ))[0];
-    console.log(`collectionAuthorityRecordAddress: ${collectionAuthorityRecordAddress}`);
-
     // Transact with the "mint" function in our on-chain program
 
-    await program.methods.setAndVerifyCollection()
+    await program.methods.setCollection()
       .accounts({
         nftPda: nftPda,
         collectionPda: collectionPda,
-        metadata: metadataAddress,
         payer: wallet.publicKey,
-        nftManager: nftManagerKeypair.publicKey,
-        collectionMint: collectionMintKey,
-        collectionMetadata: collectionMetadataAddress,
-        collectionMasterEdition: collectionMasterEditionAddress,
+        metadata: collectionMetadataAddress,
+        mint: collectionMintKey,
+        edition: collectionMasterEditionAddress,
         collectionAuthorityRecord: collectionAuthorityRecordAddress,
+        nftManager: nftManagerKeypair.publicKey,
         tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
       })
       .signers([])

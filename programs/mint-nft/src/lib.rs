@@ -51,6 +51,12 @@ pub mod mint_nft {
         mint::mint(ctx)
     }
 
+    pub fn set_collection(
+        ctx: Context<SetCollection>
+    ) -> Result<()> {
+        mint::set_collection(ctx)
+    }
+
     pub fn set_and_verify_collection(
         ctx: Context<SetAndVerifyCollection>,
     ) -> Result<()> {
